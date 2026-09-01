@@ -1,0 +1,248 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f5f7fb;
+    color: #1f2937;
+}
+
+.container {
+    width: 95%;
+    max-width: 1200px;
+    margin: 30px auto;
+}
+
+/* HEADER */
+
+header {
+    margin-bottom: 25px;
+}
+
+header h1 {
+    font-size: 30px;
+    margin-bottom: 5px;
+}
+
+header p {
+    color: #6b7280;
+}
+
+/* DASHBOARD */
+
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.06);
+}
+
+.card span {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.card h2 {
+    margin-top: 10px;
+    font-size: 25px;
+}
+
+.saldo {
+    border-left: 5px solid #2563eb;
+}
+
+.pemasukan {
+    border-left: 5px solid #16a34a;
+}
+
+.pengeluaran {
+    border-left: 5px solid #dc2626;
+}
+
+/* FORM */
+
+.form-section,
+.transaksi-section {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.06);
+    margin-bottom: 25px;
+}
+
+.form-section h2,
+.transaksi-section h2 {
+    margin-bottom: 20px;
+}
+
+form {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 7px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+input,
+select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+}
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+
+.btn-tambah {
+    grid-column: span 2;
+    padding: 13px;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-tambah:hover {
+    opacity: 0.9;
+}
+
+/* HEADER TRANSAKSI */
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.section-header p {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+/* TABLE */
+
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 14px 10px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+    white-space: nowrap;
+}
+
+th {
+    background: #f9fafb;
+    font-size: 13px;
+}
+
+td {
+    font-size: 14px;
+}
+
+.masuk {
+    color: #16a34a;
+    font-weight: bold;
+}
+
+.keluar {
+    color: #dc2626;
+    font-weight: bold;
+}
+
+/* BUTTON AKSI */
+
+.btn-edit,
+.btn-hapus {
+    border: none;
+    padding: 7px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-right: 4px;
+}
+
+.btn-edit {
+    background: #f59e0b;
+    color: white;
+}
+
+.btn-hapus {
+    background: #dc2626;
+    color: white;
+}
+
+/* KOSONG */
+
+.kosong {
+    text-align: center;
+    padding: 30px;
+    color: #9ca3af;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 768px) {
+
+    .dashboard {
+        grid-template-columns: 1fr;
+    }
+
+    form {
+        grid-template-columns: 1fr;
+    }
+
+    .btn-tambah {
+        grid-column: span 1;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    header h1 {
+        font-size: 24px;
+    }
+
+    .card h2 {
+        font-size: 22px;
+    }
+
+}
