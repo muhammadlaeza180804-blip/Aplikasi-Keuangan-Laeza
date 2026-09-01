@@ -3,22 +3,6 @@
 // ===============================
 
 let transaksi = [];
-async function ambilTransaksi() {
-    const { data, error } = await supabaseClient
-        .from("transaksi")
-        .select("*")
-        .order("tanggal", { ascending: false });
-
-    if (error) {
-        console.error("Gagal mengambil data:", error);
-        return;
-    }
-
-    transaksi = data || [];
-
-    updateDashboard();
-    tampilkanTransaksi();
-}
 let editId = null;
 
 
@@ -63,32 +47,42 @@ function formatRupiah(angka) {
         style: "currency",
         currency: "IDR",
         maximumFractionDigits: 0
-    }).format(angka);
+    }).format(Number(angka) || 0);
 
 }
 
 
 // ===============================
-// SIMPAN DATA
+// AMBIL DATA DARI SUPABASE
 // ===============================
 
-async function simpanData() {
-    const { error } = await supabaseClient
+async function ambilTransaksi() {
+
+    const { data, error } = await supabaseClient
         .from("transaksi")
-        .insert(transaksi);
+        .select("*")
+        .order("tanggal", {
+            ascending: false
+        });
 
     if (error) {
-        console.error("Gagal menyimpan transaksi:", error);
-        alert("Gagal menyimpan transaksi.");
-        return false;
+
+        console.error("Gagal mengambil data:", error);
+
+        alert("Gagal mengambil data transaksi.");
+
+        return;
     }
 
-    return true;
+    transaksi = data || [];
+
+    updateDashboard();
+    tampilkanTransaksi();
 }
 
 
 // ===============================
-// TAMPILKAN DASHBOARD
+// DASHBOARD
 // ===============================
 
 function updateDashboard() {
@@ -98,19 +92,23 @@ function updateDashboard() {
 
     transaksi.forEach(item => {
 
+        const nominal =
+            Number(item.nominal) || 0;
+
         if (item.jenis === "pemasukan") {
 
-            totalPemasukan += item.nominal;
+            totalPemasukan += nominal;
 
         } else {
 
-            totalPengeluaran += item.nominal;
+            totalPengeluaran += nominal;
 
         }
 
     });
 
-    const saldo = totalPemasukan - totalPengeluaran;
+    const saldo =
+        totalPemasukan - totalPengeluaran;
 
     pemasukanElement.textContent =
         formatRupiah(totalPemasukan);
@@ -120,7 +118,6 @@ function updateDashboard() {
 
     saldoElement.textContent =
         formatRupiah(saldo);
-
 }
 
 
@@ -132,19 +129,19 @@ function tampilkanTransaksi() {
 
     daftarTransaksi.innerHTML = "";
 
-    const filter = filterJenis.value;
+    const filter =
+        filterJenis.value;
 
-    let data = transaksi;
+    let data = [...transaksi];
 
     if (filter !== "semua") {
 
-        data = transaksi.filter(
+        data = data.filter(
             item => item.jenis === filter
         );
 
     }
 
-    // Urutkan berdasarkan tanggal terbaru
     data.sort(
         (a, b) =>
             new Date(b.tanggal) -
@@ -154,18 +151,20 @@ function tampilkanTransaksi() {
 
     if (data.length === 0) {
 
-        kosongElement.style.display = "block";
+        kosongElement.style.display =
+            "block";
 
         return;
-
     }
 
-    kosongElement.style.display = "none";
+    kosongElement.style.display =
+        "none";
 
 
     data.forEach(item => {
 
-        const row = document.createElement("tr");
+        const row =
+            document.createElement("tr");
 
         const tanda =
             item.jenis === "pemasukan"
@@ -227,7 +226,6 @@ function tampilkanTransaksi() {
         daftarTransaksi.appendChild(row);
 
     });
-
 }
 
 
@@ -237,7 +235,8 @@ function tampilkanTransaksi() {
 
 function formatTanggal(tanggal) {
 
-    const date = new Date(tanggal);
+    const date =
+        new Date(tanggal);
 
     return date.toLocaleDateString(
         "id-ID",
@@ -247,12 +246,11 @@ function formatTanggal(tanggal) {
             year: "numeric"
         }
     );
-
 }
 
 
 // ===============================
-// TAMBAH TRANSAKSI
+// TAMBAH / EDIT TRANSAKSI
 // ===============================
 
 form.addEventListener(
@@ -278,7 +276,7 @@ form.addEventListener(
             Number(nominalInput.value);
 
 
-        // Validasi
+        // VALIDASI
 
         if (
             !jenis ||
@@ -293,32 +291,40 @@ form.addEventListener(
             );
 
             return;
-
         }
 
 
+        // ===============================
         // MODE EDIT
+        // ===============================
 
         if (editId !== null) {
 
-            const index =
-                transaksi.findIndex(
-                    item => item.id === editId
+            const { error } =
+                await supabaseClient
+                    .from("transaksi")
+                    .update({
+                        jenis: jenis,
+                        tanggal: tanggal,
+                        kategori: kategori,
+                        keterangan: keterangan,
+                        nominal: nominal
+                    })
+                    .eq("id", editId);
+
+
+            if (error) {
+
+                console.error(
+                    "Gagal mengedit:",
+                    error
                 );
 
-            if (index !== -1) {
+                alert(
+                    "Gagal mengedit transaksi."
+                );
 
-                transaksi[index] = {
-
-                    id: editId,
-                    jenis,
-                    tanggal,
-                    kategori,
-                    keterangan,
-                    nominal
-
-                };
-
+                return;
             }
 
             editId = null;
@@ -328,56 +334,61 @@ form.addEventListener(
             ).textContent =
                 "+ Tambah Transaksi";
 
+        }
+
+
+        // ===============================
+        // MODE TAMBAH
+        // ===============================
+
+        else {
+
+            const dataBaru = {
+
+                jenis: jenis,
+
+                tanggal: tanggal,
+
+                kategori: kategori,
+
+                keterangan: keterangan,
+
+                nominal: nominal
+
+            };
+
+
+            const { error } =
+                await supabaseClient
+                    .from("transaksi")
+                    .insert([dataBaru]);
+
+
+            if (error) {
+
+                console.error(
+                    "Gagal menyimpan:",
+                    error
+                );
+
+                alert(
+                    "Gagal menyimpan transaksi."
+                );
+
+                return;
+            }
 
         }
 
-        // MODE TAMBAH
 
-        // MODE TAMBAH
-
-else {
-
-    const dataBaru = {
-
-        jenis: jenis,
-
-        tanggal: tanggal,
-
-        kategori: kategori,
-
-        keterangan: keterangan,
-
-        nominal: nominal
-
-    };
-
-    const { data, error } = await supabaseClient
-        .from("transaksi")
-        .insert([dataBaru])
-        .select();
-
-    if (error) {
-
-        console.error("Gagal menyimpan:", error);
-
-        alert("Gagal menyimpan transaksi.");
-
-        return;
-
-    }
-
-    transaksi.push(data[0]);
-
-}
-
-
-        simpanData();
-
-        updateDashboard();
-
-        tampilkanTransaksi();
+        // RESET FORM
 
         form.reset();
+
+
+        // AMBIL DATA TERBARU
+
+        await ambilTransaksi();
 
     }
 );
@@ -391,7 +402,7 @@ function editTransaksi(id) {
 
     const item =
         transaksi.find(
-            transaksi => transaksi.id === id
+            item => Number(item.id) === Number(id)
         );
 
     if (!item) return;
@@ -434,7 +445,7 @@ function editTransaksi(id) {
 // HAPUS TRANSAKSI
 // ===============================
 
-function hapusTransaksi(id) {
+async function hapusTransaksi(id) {
 
     const konfirmasi =
         confirm(
@@ -445,17 +456,29 @@ function hapusTransaksi(id) {
     if (!konfirmasi) return;
 
 
-    transaksi =
-        transaksi.filter(
-            item => item.id !== id
+    const { error } =
+        await supabaseClient
+            .from("transaksi")
+            .delete()
+            .eq("id", id);
+
+
+    if (error) {
+
+        console.error(
+            "Gagal menghapus:",
+            error
         );
 
+        alert(
+            "Gagal menghapus transaksi."
+        );
 
-    simpanData();
+        return;
+    }
 
-    updateDashboard();
 
-    tampilkanTransaksi();
+    await ambilTransaksi();
 
 }
 
