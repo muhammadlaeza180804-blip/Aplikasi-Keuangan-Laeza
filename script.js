@@ -2,10 +2,23 @@
 // DATA TRANSAKSI
 // ===============================
 
-let transaksi = JSON.parse(
-    localStorage.getItem("transaksiKeuangan")
-) || [];
+let transaksi = [];
+async function ambilTransaksi() {
+    const { data, error } = await supabaseClient
+        .from("transaksi")
+        .select("*")
+        .order("tanggal", { ascending: false });
 
+    if (error) {
+        console.error("Gagal mengambil data:", error);
+        return;
+    }
+
+    transaksi = data || [];
+
+    updateDashboard();
+    tampilkanTransaksi();
+}
 let editId = null;
 
 
@@ -59,13 +72,18 @@ function formatRupiah(angka) {
 // SIMPAN DATA
 // ===============================
 
-function simpanData() {
+async function simpanData() {
+    const { error } = await supabaseClient
+        .from("transaksi")
+        .insert(transaksi);
 
-    localStorage.setItem(
-        "transaksiKeuangan",
-        JSON.stringify(transaksi)
-    );
+    if (error) {
+        console.error("Gagal menyimpan transaksi:", error);
+        alert("Gagal menyimpan transaksi.");
+        return false;
+    }
 
+    return true;
 }
 
 
@@ -239,7 +257,7 @@ function formatTanggal(tanggal) {
 
 form.addEventListener(
     "submit",
-    function(event) {
+    async function(event) {
 
         event.preventDefault();
 
@@ -315,27 +333,42 @@ form.addEventListener(
 
         // MODE TAMBAH
 
-        else {
+        // MODE TAMBAH
 
-            const dataBaru = {
+else {
 
-                id: Date.now(),
+    const dataBaru = {
 
-                jenis: jenis,
+        jenis: jenis,
 
-                tanggal: tanggal,
+        tanggal: tanggal,
 
-                kategori: kategori,
+        kategori: kategori,
 
-                keterangan: keterangan,
+        keterangan: keterangan,
 
-                nominal: nominal
+        nominal: nominal
 
-            };
+    };
 
-            transaksi.push(dataBaru);
+    const { data, error } = await supabaseClient
+        .from("transaksi")
+        .insert([dataBaru])
+        .select();
 
-        }
+    if (error) {
+
+        console.error("Gagal menyimpan:", error);
+
+        alert("Gagal menyimpan transaksi.");
+
+        return;
+
+    }
+
+    transaksi.push(data[0]);
+
+}
 
 
         simpanData();
@@ -441,6 +474,4 @@ filterJenis.addEventListener(
 // JALANKAN APLIKASI
 // ===============================
 
-updateDashboard();
-
-tampilkanTransaksi();
+ambilTransaksi();
